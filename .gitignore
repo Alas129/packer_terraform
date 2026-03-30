@@ -1,0 +1,18 @@
+# Terraform
+terraform/.terraform/
+terraform/*.tfstate
+terraform/*.tfstate.backup
+terraform/.terraform.lock.hcl
+terraform/terraform.tfvars
+
+# Packer
+packer/variables.pkrvars.hcl
+packer/packer_cache/
+
+# SSH keys
+*.pem
+*.pub
+id_rsa
+
+# OS
+.DS_Store
