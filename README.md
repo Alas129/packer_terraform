@@ -1,6 +1,6 @@
 # Packer & Terraform — Custom AMI + AWS Infrastructure
 
-Build a custom Amazon Linux AMI with Docker pre-installed using **Packer**, then provision a full AWS VPC with a bastion host and 6 private EC2 instances using **Terraform**.
+Build a custom Amazon Linux AMI with Docker and Prometheus Node Exporter pre-installed using **Packer**, then provision a full AWS VPC with a bastion host, 6 private EC2 instances, and 1 private monitoring EC2 (Prometheus + Grafana) using **Terraform**.
 
 ## Table of Contents
 
@@ -99,6 +99,7 @@ Packer_and_Terraform/
 │   └── variables.pkrvars.hcl.example    # Example variables (copy and fill in)
 ├── terraform/
 │   ├── main.tf                          # Root module — wires all modules together
+│   ├── monitoring.tf                    # Monitoring EC2 in private subnet (Prometheus + Grafana)
 │   ├── variables.tf                     # Input variable declarations
 │   ├── outputs.tf                       # Output values (bastion IP, private IPs, etc.)
 │   ├── terraform.tfvars.example         # Example variable values (copy and fill in)
@@ -129,6 +130,7 @@ The Packer template creates an AMI based on **Amazon Linux 2023** with the follo
 
 - Docker (enabled and started on boot)
 - Docker Compose v2.24.0
+- Prometheus Node Exporter (enabled and started on boot, port `9100`)
 - Your SSH public key in `~/.ssh/authorized_keys`
 
 ### Step 1 — Create or locate an AWS Key Pair
@@ -305,8 +307,9 @@ After `terraform apply` completes successfully, you will have:
 | **NAT Gateway** | In the first public subnet with an Elastic IP, routed from private subnets |
 | **Bastion host** | 1x `t3.micro` in the public subnet — SSH restricted to your IP only |
 | **Private instances** | 6x `t3.micro` distributed across private subnets — SSH only from bastion |
+| **Monitoring instance** | 1x private EC2 (default `t3.small`) running Prometheus (`9090`) and Grafana (`3000`) |
 
-All 7 EC2 instances (1 bastion + 6 private) use the **custom Packer AMI** with Docker and your SSH key pre-installed.
+All 8 EC2 instances (1 bastion + 6 private + 1 monitoring) use the **custom Packer AMI** with Docker, Node Exporter, and your SSH key pre-installed.
 
 ### AWS Console Verification
 
