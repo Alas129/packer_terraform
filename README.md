@@ -10,6 +10,7 @@ Build a custom Amazon Linux AMI with Docker and Prometheus Node Exporter pre-ins
 - [Part A — Build the Custom AMI with Packer](#part-a--build-the-custom-ami-with-packer)
 - [Part B — Provision Infrastructure with Terraform](#part-b--provision-infrastructure-with-terraform)
 - [Part C — Verify Connectivity](#part-c--verify-connectivity)
+- [Part D — Verify Monitoring (Prometheus + Grafana)](#part-d--verify-monitoring-prometheus--grafana)
 - [What to Expect](#what-to-expect)
 - [Cleanup](#cleanup)
 
@@ -233,7 +234,7 @@ my_ip_cidr   = "98.42.173.55/32"         # Your public IP from curl ifconfig.me
 terraform init
 ```
 
-This downloads the AWS provider and initializes all four modules (vpc, security-groups, bastion, private-instances):
+This downloads the AWS provider and initializes all required Terraform modules/resources (vpc, security-groups, bastion, private-instances, and monitoring host definition):
 
 ![Terraform init — successfully initialized with all modules and AWS provider v5.100.0](./images/terraform_init.png)
 
@@ -247,9 +248,13 @@ Terraform shows the execution plan — all the resources it will create. Review 
 
 ![Terraform apply — execution plan showing resources to be created](./images/terraform_apply.png)
 
-After ~2-3 minutes, all resources are created. Terraform outputs the bastion's public IP, all 6 private instance IPs, and the VPC ID:
+After ~2-3 minutes, all resources are created. Terraform outputs the bastion's public IP, all 6 private instance IPs, the monitoring private IP, and the VPC ID:
 
 ![Terraform apply complete — 7 resources added, outputs showing bastion IP 34.211.198.68 and 6 private IPs](./images/terraform_apply_result.png)
+
+You can verify in the AWS Console that all **8 instances** are running (1 bastion + 6 private + 1 monitoring):
+
+![AWS Console — 8 EC2 instances including monitoring host](./images/ec2_instances_with_monitor_instance.png)
 
 ---
 
@@ -294,6 +299,60 @@ docker-compose version
 
 ---
 
+## Part D — Verify Monitoring (Prometheus + Grafana)
+
+### Step 1 — Create local tunnels through bastion to monitoring host
+
+From your local machine, forward Prometheus and Grafana ports through the bastion:
+
+```bash
+ssh -i ~/.ssh/packer-tf-key.pem \
+  -L 9090:<monitoring_private_ip>:9090 \
+  -L 3000:<monitoring_private_ip>:3000 \
+  ec2-user@<bastion_public_ip>
+```
+
+![SSH port forwarding from local machine to monitoring host via bastion](./images/tunneling_bastion_to_monitor.png)
+
+### Step 2 — Verify SSH hop from bastion to monitoring host
+
+Use agent forwarding (or your preferred SSH method) and verify you can reach the monitoring instance from bastion:
+
+```bash
+ssh -A -i ~/.ssh/packer-tf-key.pem ec2-user@<bastion_public_ip>
+ssh ec2-user@<monitoring_private_ip>
+```
+
+![SSH from bastion into private monitoring instance](./images/ssh_into_monitor_from_bastion.png)
+
+### Step 3 — Verify Prometheus/Grafana containers and health on monitoring host
+
+```bash
+cd /opt/monitoring
+docker-compose ps
+curl -s http://localhost:9090/-/healthy
+curl -s http://localhost:3000/api/health
+```
+
+![Prometheus and Grafana containers running with healthy endpoints](./images/validate_grafana_prometheus_container_in_monitor.png)
+
+### Step 4 — Open the monitoring UIs locally
+
+With the SSH tunnel active:
+
+- Prometheus: `http://localhost:9090`
+- Grafana: `http://localhost:3000`
+
+Prometheus query page:
+
+![Prometheus web UI through local tunnel](./images/prometheus_page.png)
+
+Grafana landing page after login:
+
+![Grafana UI through local tunnel](./images/grafana_login_page.png)
+
+---
+
 ## What to Expect
 
 After `terraform apply` completes successfully, you will have:
@@ -313,9 +372,9 @@ All 8 EC2 instances (1 bastion + 6 private + 1 monitoring) use the **custom Pack
 
 ### AWS Console Verification
 
-**EC2 Instances** — All 7 instances running (1 bastion + 6 private)
+**EC2 Instances** — All 8 instances running (1 bastion + 6 private + 1 monitoring)
 
-![AWS Console — 7 EC2 instances running: packer-tf-lab-bastion and packer-tf-lab-private-1 through 6](./images/aws_ec2_instances.png)
+![AWS Console — 8 EC2 instances including monitoring host](./images/ec2_instances_with_monitor_instance.png)
 
 **Security Groups** — Two security groups created by Terraform: `packer-tf-lab-bastion-sg` (allows SSH from your IP only) and `packer-tf-lab-private-sg` (allows SSH from the bastion SG only):
 
@@ -332,7 +391,7 @@ cd terraform
 terraform destroy
 ```
 
-Type `yes` when prompted. This removes all 7 EC2 instances, the NAT Gateway, Elastic IP, subnets, route tables, security groups, Internet Gateway, and VPC.
+Type `yes` when prompted. This removes all 8 EC2 instances, the NAT Gateway, Elastic IP, subnets, route tables, security groups, Internet Gateway, and VPC.
 
 ![Terraform destroy completed](./images/terraform_destroy_completed.png)
 
