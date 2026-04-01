@@ -248,13 +248,9 @@ Terraform shows the execution plan — all the resources it will create. Review 
 
 ![Terraform apply — execution plan showing resources to be created](./images/terraform_apply.png)
 
-After ~2-3 minutes, all resources are created. Terraform outputs the bastion's public IP, all 6 private instance IPs, the monitoring private IP, and the VPC ID:
+After ~2-3 minutes, all resources are created. Terraform outputs the bastion public IP, private instance IPs, monitoring private IP, and VPC ID:
 
 ![Terraform apply complete — 7 resources added, outputs showing bastion IP 34.211.198.68 and 6 private IPs](./images/terraform_apply_result.png)
-
-You can verify in the AWS Console that all **8 instances** are running (1 bastion + 6 private + 1 monitoring):
-
-![AWS Console — 8 EC2 instances including monitoring host](./images/ec2_instances_with_monitor_instance.png)
 
 ---
 
@@ -289,7 +285,7 @@ docker-compose version
 
 ![SSH from bastion to private instance — Docker 25.0.14 and Docker Compose v2.24.0 confirmed](./images/bastion_to_privite_instance.png)
 
-> **Tip:** You can also use SSH agent forwarding to connect in one step from your local machine:
+> **Tip:** You can also use SSH agent forwarding to connect in one step from your local machine (this is also used in Part D for bastion -> monitoring access):
 > ```bash
 > ssh-add ~/.ssh/packer-tf-key.pem
 > ssh -A ec2-user@<bastion_public_ip>
@@ -316,7 +312,7 @@ ssh -i ~/.ssh/packer-tf-key.pem \
 
 ### Step 2 — Verify SSH hop from bastion to monitoring host
 
-Use agent forwarding (or your preferred SSH method) and verify you can reach the monitoring instance from bastion:
+Using the SSH method shown in Part C, verify you can reach the monitoring instance from bastion:
 
 ```bash
 ssh -A -i ~/.ssh/packer-tf-key.pem ec2-user@<bastion_public_ip>
