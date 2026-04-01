@@ -57,3 +57,8 @@ variable "private_instance_count" {
   type    = number
   default = 6
 }
+
+variable "monitoring_instance_type" {
+  type    = string
+  default = "t3.small"
+}

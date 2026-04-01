@@ -36,6 +36,30 @@ resource "aws_security_group" "private" {
     security_groups = [aws_security_group.bastion.id]
   }
 
+  ingress {
+    description = "Prometheus scraping (node_exporter) within private SG"
+    from_port   = 9100
+    to_port     = 9100
+    protocol    = "tcp"
+    self        = true
+  }
+
+  ingress {
+    description     = "Prometheus UI from bastion"
+    from_port       = 9090
+    to_port         = 9090
+    protocol        = "tcp"
+    security_groups = [aws_security_group.bastion.id]
+  }
+
+  ingress {
+    description     = "Grafana UI from bastion"
+    from_port       = 3000
+    to_port         = 3000
+    protocol        = "tcp"
+    security_groups = [aws_security_group.bastion.id]
+  }
+
   egress {
     from_port   = 0
     to_port     = 0

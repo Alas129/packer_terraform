@@ -22,3 +22,13 @@ output "private_instance_ids" {
   description = "Instance IDs of the private EC2 instances"
   value       = module.private_instances.instance_ids
 }
+
+output "monitoring_instance_id" {
+  description = "Instance ID of the Prometheus and Grafana host"
+  value       = aws_instance.monitoring.id
+}
+
+output "monitoring_private_ip" {
+  description = "Private IP of the Prometheus and Grafana host"
+  value       = aws_instance.monitoring.private_ip
+}
