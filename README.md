@@ -125,6 +125,14 @@ After `terraform apply`, note these outputs:
 - `managed_instances`
 - `ansible_inventory`
 
+Terraform output showing the bastion and Ansible controller IPs:
+
+![Terraform output for bastion and controller IPs](./images/terraform_output_ips.png)
+
+Terraform output showing the six managed instances:
+
+![Terraform output for managed instances](./images/terraform_managed_instances.png)
+
 ## What Terraform Creates
 
 - `1` VPC with public and private subnets
@@ -187,11 +195,19 @@ Use tags in the AWS Console to verify the operating systems:
 - three instances tagged `OS=amazon`
 - three instances tagged `OS=ubuntu`
 
+AWS Console view showing the bastion, Ansible controller, and six managed EC2 instances:
+
+![AWS Console EC2 instances for mixed OS fleet](./images/ec2_instances_from_ansible.png)
+
 You can also inspect the rendered inventory locally:
 
 ```bash
 terraform output -raw ansible_inventory
 ```
+
+Rendered Ansible inventory from Terraform output:
+
+![Terraform raw ansible inventory output](./images/terraform_raw_ansible_inventory.png)
 
 ## Cleanup
 
