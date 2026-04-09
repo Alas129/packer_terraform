@@ -13,22 +13,46 @@ output "bastion_public_dns" {
   value       = module.bastion.public_dns
 }
 
-output "private_instance_ips" {
-  description = "Private IPs of the 6 EC2 instances in the private subnet"
-  value       = module.private_instances.private_ips
+output "managed_instance_private_ips" {
+  description = "Private IPs of the six managed EC2 instances"
+  value = concat(
+    module.amazon_linux_instances.private_ips,
+    module.ubuntu_instances.private_ips
+  )
 }
 
-output "private_instance_ids" {
-  description = "Instance IDs of the private EC2 instances"
-  value       = module.private_instances.instance_ids
+output "managed_instance_ids" {
+  description = "Instance IDs of the six managed EC2 instances"
+  value = concat(
+    module.amazon_linux_instances.instance_ids,
+    module.ubuntu_instances.instance_ids
+  )
 }
 
-output "monitoring_instance_id" {
-  description = "Instance ID of the Prometheus and Grafana host"
-  value       = aws_instance.monitoring.id
+output "managed_instances" {
+  description = "Host metadata for the three Amazon Linux and three Ubuntu instances"
+  value = concat(
+    module.amazon_linux_instances.instances,
+    module.ubuntu_instances.instances
+  )
 }
 
-output "monitoring_private_ip" {
-  description = "Private IP of the Prometheus and Grafana host"
-  value       = aws_instance.monitoring.private_ip
+output "ansible_controller_instance_id" {
+  description = "Instance ID of the Ansible controller host"
+  value       = aws_instance.ansible_controller.id
+}
+
+output "ansible_controller_private_ip" {
+  description = "Private IP of the Ansible controller host"
+  value       = aws_instance.ansible_controller.private_ip
+}
+
+output "ansible_inventory" {
+  description = "Rendered inventory for the six managed nodes"
+  value       = local.ansible_inventory
+}
+
+output "controller_playbook_path" {
+  description = "Playbook location on the Ansible controller"
+  value       = "/home/ubuntu/ansible/playbooks/manage-fleet.yml"
 }

@@ -1,0 +1,31 @@
+#!/bin/bash
+set -euxo pipefail
+
+export DEBIAN_FRONTEND=noninteractive
+
+apt-get update
+apt-get install -y ansible
+
+install -d -m 700 -o ubuntu -g ubuntu /home/ubuntu/.ssh
+cat > /home/ubuntu/.ssh/id_ed25519 <<'EOF'
+${private_key}
+EOF
+cat > /home/ubuntu/.ssh/id_ed25519.pub <<'EOF'
+${public_key}
+EOF
+chown ubuntu:ubuntu /home/ubuntu/.ssh/id_ed25519 /home/ubuntu/.ssh/id_ed25519.pub
+chmod 600 /home/ubuntu/.ssh/id_ed25519
+chmod 644 /home/ubuntu/.ssh/id_ed25519.pub
+
+install -d -m 755 -o ubuntu -g ubuntu /home/ubuntu/ansible/playbooks
+cat > /home/ubuntu/ansible/ansible.cfg <<'EOF'
+${ansible_cfg}
+EOF
+cat > /home/ubuntu/ansible/inventory.ini <<'EOF'
+${inventory}
+EOF
+cat > /home/ubuntu/ansible/playbooks/manage-fleet.yml <<'EOF'
+${playbook}
+EOF
+
+chown -R ubuntu:ubuntu /home/ubuntu/ansible

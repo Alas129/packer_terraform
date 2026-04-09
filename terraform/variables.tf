@@ -28,9 +28,9 @@ variable "availability_zones" {
   default = ["us-west-2a", "us-west-2b"]
 }
 
-variable "ami_id" {
+variable "amazon_linux_ami_id" {
   type        = string
-  description = "Custom AMI ID built by Packer"
+  description = "Amazon Linux AMI ID for the bastion and Amazon Linux managed nodes"
 }
 
 variable "key_name" {
@@ -53,12 +53,17 @@ variable "private_instance_type" {
   default = "t3.micro"
 }
 
-variable "private_instance_count" {
+variable "ubuntu_instance_count" {
   type    = number
-  default = 6
+  default = 3
 }
 
-variable "monitoring_instance_type" {
+variable "amazon_linux_instance_count" {
+  type    = number
+  default = 3
+}
+
+variable "ansible_controller_instance_type" {
   type    = string
-  default = "t3.small"
+  default = "t3.micro"
 }

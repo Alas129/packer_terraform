@@ -1,0 +1,56 @@
+- name: Update the mixed Linux fleet and verify Docker
+  hosts: managed
+  become: true
+  gather_facts: true
+
+  tasks:
+    - name: Update and upgrade packages on Ubuntu
+      ansible.builtin.apt:
+        update_cache: true
+        upgrade: dist
+        autoremove: true
+      when: ansible_facts["os_family"] == "Debian"
+
+    - name: Update and upgrade packages on Amazon Linux
+      ansible.builtin.dnf:
+        name: "*"
+        state: latest
+        update_only: true
+      when: ansible_facts["distribution"] == "Amazon"
+
+    - name: Install or update Docker on Ubuntu
+      ansible.builtin.apt:
+        name: docker.io
+        state: latest
+        update_cache: true
+      when: ansible_facts["os_family"] == "Debian"
+
+    - name: Install or update Docker on Amazon Linux
+      ansible.builtin.dnf:
+        name: docker
+        state: latest
+      when: ansible_facts["distribution"] == "Amazon"
+
+    - name: Ensure Docker is enabled and running
+      ansible.builtin.service:
+        name: docker
+        enabled: true
+        state: started
+
+    - name: Capture installed Docker version
+      ansible.builtin.command: docker --version
+      register: docker_version
+      changed_when: false
+
+    - name: Capture root filesystem usage
+      ansible.builtin.command: df -h /
+      register: disk_usage
+      changed_when: false
+
+    - name: Report Docker version and disk usage
+      ansible.builtin.debug:
+        msg:
+          - "host={{ inventory_hostname }}"
+          - "os={{ hostvars[inventory_hostname].os_tag }}"
+          - "{{ docker_version.stdout }}"
+          - "{{ disk_usage.stdout_lines | join(' | ') }}"

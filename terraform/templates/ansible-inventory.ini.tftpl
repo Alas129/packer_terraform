@@ -1,0 +1,17 @@
+[amazon]
+%{ for host in hosts ~}
+%{ if host.os_tag == "amazon" ~}
+${host.name} ansible_host=${host.private_ip} ansible_user=${host.ssh_user} os_tag=${host.os_tag} ansible_python_interpreter=/usr/bin/python3
+%{ endif ~}
+%{ endfor ~}
+
+[ubuntu]
+%{ for host in hosts ~}
+%{ if host.os_tag == "ubuntu" ~}
+${host.name} ansible_host=${host.private_ip} ansible_user=${host.ssh_user} os_tag=${host.os_tag} ansible_python_interpreter=/usr/bin/python3
+%{ endif ~}
+%{ endfor ~}
+
+[managed:children]
+amazon
+ubuntu
